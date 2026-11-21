@@ -1,0 +1,202 @@
+{
+  "updatedAt": "2026-11-16T08:21:08.727Z",
+  "createdAt": "2026-11-13T08:12:02.468Z",
+  "id": "BkCLoypuaBLJcG7d",
+  "name": "My workflow 4",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c0ada78d-0b72-4d07-b6aa-72f79e625c6b",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Task ID: {{ $json.task_id || 'revision-task' }}\nTarget Word Count: {{ $json.target_word_count || 500 }}\n\nRanked Fix List / Instructor Feedback:\n{{ $json.feedback || $json.ranked_fixes || '1. Strengthen the thesis statement.\\n2. Improve transitions between paragraphs.\\n3. Tighten wordy phrasing.' }}\n\nOriginal Draft (v1) to Revise:\n{{ $json.draft_text || $json.query || $json.chatInput || 'Artificial intelligence is changing education. Many students use tools to help with homework. However, some people worry about critical thinking. In conclusion, AI is useful if used properly.' }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=# Revision and Feedback\n\nMake the draft better without changing what the writer means, and make every change traceable so the user can accept or reject it.\n\n## 1. Understand the goal\n\nIdentify before editing: the assignment brief and rubric (if available), the audience, the required length and style, the user's own aims (\"make it more persuasive\", \"cut 300 words\", \"address the feedback\"), and what must not change (thesis, data, required quotes, the user's voice).\n\nIf instructor feedback exists, read it first and treat it as the highest-priority instruction.\n\n## 2. Turn feedback into a fix list\n\nSort every comment into one of these categories and rewrite it as a specific action:\n\n- **Content**: missing argument, shallow analysis, unsupported claim, wrong fact\n- **Structure**: order, transitions, missing sections, weak intro or conclusion\n- **Evidence**: too few sources, weak sources, quotes without analysis\n- **Style**: clarity, concision, tone, repetition, jargon\n- **Mechanics**: grammar, spelling, punctuation, formatting, citations\n\nMark each item as must-fix (affects grade or was explicitly requested), should-fix, or optional. Resolve vague comments (\"be more critical\") into concrete moves (\"add a paragraph evaluating the limitations of study X\").\n\n## 3. Edit in layers, in this order\n\n1. **Big picture**: does the draft answer the question; is the thesis clear and consistent; is the order logical.\n2. **Paragraphs**: one idea each; clear topic sentence; evidence plus explanation; link to thesis.\n3. **Sentences**: cut filler, replace weak verbs, fix unclear references, vary rhythm, remove repeated words.\n4. **Mechanics**: spelling, grammar, punctuation, consistent terminology, headings, numbering, citation style.\n\nDo not polish sentences in a paragraph that you may delete.\n\n## 4. Length control\n\n**Cutting**: remove repetition, throat-clearing openers, hedging stacks, and examples that add nothing. Merge short paragraphs on the same point. Prefer cutting whole weak points over trimming everything evenly. Never cut required content or citations.\n\n**Expanding**: add depth where the rubric rewards it: analysis of evidence, a counterargument and response, an example, a limitation, implications. Do not pad with restatement.\n\nHit the target within about 5 percent and report the final count.\n\n## 5. Preserve the writer's voice\n\nKeep the user's vocabulary level, sentence habits, and spelling variant (British or American). Avoid swapping in elaborate wording the user would not use. Do not add claims, sources, or experiences the user did not supply; suggest them as options instead.\n\n## 6. Deliver\n\n- The revised text in the original file format when possible (for a .docx, keep headings and styles; use tracked changes if the user wants them).\n- A change summary: the 5 to 10 most important changes and why, mapped to the feedback or rubric.\n- A short list of remaining items only the user can resolve (missing source, personal example, data you cannot verify).\n- If asked, an alternative lighter-touch version that changes less.\n\n## Rules\n\n- Never alter data, quotations, or results.\n- Never insert citations you have not verified.\n- If the draft has a fundamental problem (wrong question answered, missing half the task), say so directly before polishing anything.\n- When the user disagrees with a change, revert it without argument.\n\n"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        224,
+        0
+      ],
+      "id": "609c3416-ff8b-48f5-84e7-62a0587a83f6",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "jsCode": "const trigger = $('When Executed by Another Workflow').first().json;\nconst rawTaskId = trigger.task_id || new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-revision';\nconst targetWords = Number(trigger.target_word_count) || 500;\nconst revisedText = $input.first().json.text || $input.first().json.output || '';\n\nconst actualWords = revisedText.trim().split(/\\s+/).filter(Boolean).length;\nconst minWords = Math.floor(targetWords * 0.95);\nconst maxWords = Math.ceil(targetWords * 1.05);\nconst withinTolerance = actualWords >= minWords && actualWords <= maxWords;\nconst verifyFlags = (revisedText.match(/\\[VERIFY\\]/gi) || []).length;\n\nreturn [\n  {\n    json: {\n      task_id: rawTaskId,\n      revised_filename: `${rawTaskId}-v2.md`,\n      target_word_count: targetWords,\n      revised_word_count: actualWords,\n      allowed_word_range: `${minWords} - ${maxWords}`,\n      within_5_percent_tolerance: withinTolerance,\n      remaining_verify_flags: verifyFlags,\n      revised_draft_markdown: revisedText\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        0
+      ],
+      "id": "f00f80d8-e88d-4016-bf5d-4bc00c7936f1",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $json.revised_draft_markdown }}",
+        "name": "={{ $json.revised_filename }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1Rs59O7P8evqLse9DFq9YomliYG8I6I8U",
+          "mode": "list",
+          "cachedResultName": "KAIZEN AGENT",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1Rs59O7P8evqLse9DFq9YomliYG8I6I8U"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        816,
+        0
+      ],
+      "id": "73f89201-2793-4470-8db1-8a9d170138a0",
+      "name": "Create file from text",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "CsZbbrRX7RJQ9Dm1",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        160,
+        208
+      ],
+      "id": "9a35a956-a30f-4abb-bf10-482cef1ad841",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "NDkBVMnRiSpaKM2r",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Create file from text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "d72e438e-49b4-49da-bce1-aca452e9058b",
+  "activeVersionId": "d72e438e-49b4-49da-bce1-aca452e9058b",
+  "versionCounter": 27,
+  "triggerCount": 0,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-11-13T08:12:02.470Z",
+      "createdAt": "2026-11-13T08:12:02.470Z",
+      "role": "workflow:owner",
+      "workflowId": "BkCLoypuaBLJcG7d",
+      "projectId": "BdVmUgeBV0EmboAd",
+      "project": {
+        "updatedAt": "2026-11-09T11:54:48.497Z",
+        "createdAt": "2026-10-27T05:47:40.623Z",
+        "id": "BdVmUgeBV0EmboAd",
+        "name": "Jayesh Aher <jayeshaher12@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "99d50621-a0fc-49e1-81d3-7588c1f90355"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version d72e438e",
+    "description": ""
+  }
+}

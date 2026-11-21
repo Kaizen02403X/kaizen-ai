@@ -1,0 +1,247 @@
+{
+  "updatedAt": "2026-11-16T06:31:15.163Z",
+  "createdAt": "2026-11-13T09:23:44.269Z",
+  "id": "fb85bs5IRkXS2Tf4",
+  "name": "My workflow 6",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4a4f550e-9a13-48f9-a367-db5fdd217c89",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Task ID: {{ $json.task_id || 'exam-prep' }}\nExam Date / Time Remaining: {{ $json.exam_date || '7 days' }}\nExam Format: {{ $json.exam_format || 'Mixed: Multiple Choice, Short Answer, and Problem Solving' }}\nSyllabus / Topics / Notes: {{ $json.topics || $json.notes || $json.query || $json.chatInput || 'Python Fundamentals: Control structures, functions, recursion, and time complexity' }}\n\nFormatting Requirement for Flashcards:\nAt the end of your response, list at least 10 flashcards using this exact one-line format per card so the script can export them to CSV:\nFLASHCARD: [Question or Front] || [Answer or Back]",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=# Study and Exam Prep\n\nHelp the user learn the material, not just reread it. Active recall, spaced repetition, and practice under test conditions beat passive review.\n\n## 1. Scope the exam\n\nCollect: the course and exam date, format (multiple choice, short answer, essay, problem solving, open book), topics covered, weights, allowed materials, past papers, lecture slides, notes, readings, and the user's self-rated confidence per topic. Use whatever the user provides as the source of truth; do not invent syllabus content.\n\n## 2. Build a topic map\n\nList the topics and subtopics from the syllabus, slides, and readings. Rank them by exam weight and by the user's weakness. Spend most time on high-weight, low-confidence topics. Show the map as a short table: topic, weight, confidence, priority.\n\n## 3. Produce study materials\n\nChoose what fits the exam format:\n\n- **Concise notes**: key definitions, formulas, and ideas, each with one worked example. One page per topic at most. Include the common mistakes for that topic.\n- **Flashcards**: question on one side, short answer on the other. One fact or step per card. Include \"why\" and \"when to use\" cards, not only definitions.\n- **Practice questions** in the exam's format and difficulty, with model answers or worked solutions. Cover easy, medium, and hard. Compute numeric answers with a tool and check them.\n- **Concept explanations**: start from what the user already understands, build step by step, give one concrete example and one analogy, then check understanding with a question. If the user is stuck, try a different explanation instead of repeating the first.\n- **Summary sheets** for open-book or cheat-sheet exams, if allowed.\n- **Essay plans** for essay exams: likely prompts, thesis templates, evidence to memorize.\n\nBase everything on the provided course material. If you add outside explanation, label it as such. If you are unsure of a fact, say so rather than guessing.\n\n## 4. Schedule review\n\nCreate a spaced review plan working backward from the exam date: first pass on all topics, second pass on weak topics a few days later, third pass shortly before the exam, then timed practice papers. Put harder topics earlier. Keep the final day for light review and rest.\n\n## 5. Quiz and diagnose\n\nWhen the user wants practice, ask one question at a time, wait for the answer, then give feedback: whether it is right, why, and what the correct reasoning is. Track which topics they miss and return to them. Offer a timed mock paper close to the exam and mark it against a rubric or model answers.\n\n## 6. Output format\n\nKeep outputs scannable: headings per topic, short bullets, tables for comparisons, and numbered steps for procedures. Offer files when useful: a flashcard CSV (front, back columns) for import into spaced-repetition apps, a printable notes document, or a checklist.\n\n## Rules\n\n- Do not give the user questions that are copied from copyrighted exam banks; write original ones in the same style.\n- If the user has an assessment that forbids outside help, remind them to follow its rules. Study help before the exam is fine.\n- Encourage active recall: ask the user to attempt an answer before revealing yours.\n- Be honest about weak areas and realistic about what can be covered in the time left.\n\n"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        224,
+        0
+      ],
+      "id": "8badd7b4-16ef-4089-9825-716c6710c88f",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "jsCode": "const trigger = $('When Executed by Another Workflow').first().json;\nconst rawTaskId = trigger.task_id || new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-study';\nconst llmOutput = $input.first().json.text || $input.first().json.output || '';\n\nconst lines = llmOutput.split('\\n');\nconst csvRows = ['\"Front\",\"Back\"'];\n\nfor (const line of lines) {\n  if (line.trim().startsWith('FLASHCARD:')) {\n    const content = line.replace(/^FLASHCARD:\\s*/i, '').trim();\n    const parts = content.split('||');\n    if (parts.length >= 2) {\n      const front = parts[0].trim().replace(/\"/g, '\"\"');\n      const back = parts.slice(1).join(' ').trim().replace(/\"/g, '\"\"');\n      csvRows.push(`\"${front}\",\"${back}\"`);\n    }\n  }\n}\n\nreturn [\n  {\n    json: {\n      task_id: rawTaskId,\n      study_guide_filename: `${rawTaskId}-study-guide.md`,\n      study_guide_markdown: llmOutput,\n      flashcards_csv_filename: `${rawTaskId}-flashcards.csv`,\n      flashcards_csv_content: csvRows.join('\\n'),\n      flashcard_count: csvRows.length - 1\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        0
+      ],
+      "id": "19686bbc-10e2-41d4-bc60-ace29cafadbf",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $json.study_guide_markdown }}",
+        "name": "={{ $json.study_guide_filename }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1Rs59O7P8evqLse9DFq9YomliYG8I6I8U",
+          "mode": "list",
+          "cachedResultName": "KAIZEN AGENT",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1Rs59O7P8evqLse9DFq9YomliYG8I6I8U"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        816,
+        0
+      ],
+      "id": "075f55e1-642b-40cd-946d-6f0433eb9f9d",
+      "name": "Create file from text",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "CsZbbrRX7RJQ9Dm1",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $('Code in JavaScript').first().json.flashcards_csv_content }}",
+        "name": "={{ $('Code in JavaScript').first().json.flashcards_csv_filename }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1Rs59O7P8evqLse9DFq9YomliYG8I6I8U",
+          "mode": "list",
+          "cachedResultName": "KAIZEN AGENT",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1Rs59O7P8evqLse9DFq9YomliYG8I6I8U"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        992,
+        0
+      ],
+      "id": "ae06677b-02a5-4781-9bc5-8260d49806f5",
+      "name": "Create file from text1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "CsZbbrRX7RJQ9Dm1",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        160,
+        208
+      ],
+      "id": "aa6637ee-ebdc-463d-93eb-a1b83c09f27e",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "NDkBVMnRiSpaKM2r",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Create file from text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create file from text": {
+      "main": [
+        [
+          {
+            "node": "Create file from text1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "380d9045-dfca-46dc-b7fb-9ee0daffe1f0",
+  "activeVersionId": "380d9045-dfca-46dc-b7fb-9ee0daffe1f0",
+  "versionCounter": 26,
+  "triggerCount": 0,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-11-13T09:23:44.272Z",
+      "createdAt": "2026-11-13T09:23:44.272Z",
+      "role": "workflow:owner",
+      "workflowId": "fb85bs5IRkXS2Tf4",
+      "projectId": "BdVmUgeBV0EmboAd",
+      "project": {
+        "updatedAt": "2026-11-09T11:54:48.497Z",
+        "createdAt": "2026-10-27T05:47:40.623Z",
+        "id": "BdVmUgeBV0EmboAd",
+        "name": "Jayesh Aher <jayeshaher12@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "99d50621-a0fc-49e1-81d3-7588c1f90355"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version 380d9045",
+    "description": ""
+  }
+}

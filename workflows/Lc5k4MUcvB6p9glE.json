@@ -1,0 +1,329 @@
+{
+  "updatedAt": "2026-11-16T08:23:37.767Z",
+  "createdAt": "2026-11-10T09:30:48.588Z",
+  "id": "Lc5k4MUcvB6p9glE",
+  "name": "My workflow 2",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c0f68a73-f0de-4d69-8ddf-9a720d29dbeb",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Task ID: {{ $json.task_id || 'assignment-v1' }}\nPipeline Type: {{ $json.pipeline_type || 'auto-detect' }}\nAssignment Brief & Rubric: {{ $json.brief || $json.query || $json.chatInput || 'Write a sample Python program to calculate Fibonacci numbers and explain its time complexity.' }}\nVerified Sources: {{ $json.verified_sources || 'No external sources required' }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=# Assignment Completion\n\nTurn an assignment brief into a finished, submission-ready deliverable that meets every stated requirement. Work in the order below. Do not skip the requirements and verification steps; most lost marks come from missed instructions, not weak content.\n\n## 1. Intake: understand the brief\n\nBefore writing anything, read the whole brief and any attached material (rubric, readings, data files, templates, prior feedback). Extract and write down, in a short working checklist:\n\n- **Task**: what exactly is being asked (analyze, compare, argue, solve, build, summarize, design)\n- **Deliverable**: format (docx, pdf, pptx, xlsx, code, plain text), length or word count, page limit, file naming\n- **Audience and register**: instructor, peers, a client, a general reader; academic or professional tone\n- **Citation style**: APA, MLA, Chicago, IEEE, Harvard, or none. If unspecified, ask or default to APA and say so\n- **Grading criteria**: rubric items and their weights; spend effort in proportion to marks\n- **Constraints**: required sources, forbidden sources, required sections, deadlines, collaboration or AI-use rules\n- **Inputs provided**: datasets, readings, code skeletons, case facts that must be used\n\nIf the brief is ambiguous and a wrong guess would be costly (wrong topic, wrong format, wrong scope), ask one short question with your best-guess default. Otherwise state your assumption in one line and continue.\n\nIf the brief or course materials state a policy on AI assistance, tell the user what it says before proceeding so they can decide how to use the output (for example, as a draft to revise and submit under that policy).\n\n## 2. Plan\n\nProduce a brief plan before drafting:\n\n1. Thesis, answer, or solution approach in one or two sentences\n2. Outline mapped to rubric items (each rubric row should be visible in the outline)\n3. Sources or data needed\n4. Length budget per section\n\nFor anything longer than about 1,000 words, or anything with multiple parts, show the outline to the user first if they are available. If they are not, proceed and state the plan at the top of your hand-off.\n\n## 3. Research and source handling\n\n- Use the provided readings and data first. Bring in outside sources only when the brief allows or requires them.\n- Prefer primary and peer-reviewed sources, then reputable institutional sources. Avoid anonymous blogs, content farms, and wikis as citations (they can help orient you).\n- **Never invent a source, quote, statistic, page number, DOI, or URL.** Every citation must come from something you actually opened or retrieved. If you cannot verify a detail, leave it out or mark it `[VERIFY]` for the user.\n- Paraphrase in your own words. Quote directly only when the exact wording matters, keep quotes short, and always attribute them.\n- Record each source as you use it (author, year, title, publisher or journal, URL or DOI, access date) so the reference list can be built without guessing.\n- If sources disagree, say so and explain which you weight more and why.\n\n## 4. Drafting by assignment type\n\n### Essays, reports, and discussion posts\n\n- Open with the claim or question, not background filler. State the thesis early.\n- One main idea per paragraph: claim, evidence, explanation of why the evidence supports the claim, link back to the thesis.\n- Address the strongest counterargument and respond to it.\n- Match the word count within about 5 percent unless told otherwise.\n- Use clear, plain academic prose. Avoid padding, stock phrases, and unexplained jargon.\n\n### Problem sets (math, physics, statistics, finance, engineering)\n\n- Restate what is given and what is asked.\n- Show every step, with formulas stated before substitution and units carried through.\n- Compute numerically with code or a calculator tool rather than by estimation. Do not do long arithmetic mentally.\n- Sanity-check each answer (magnitude, sign, units, limiting case) and state the final answer clearly.\n- If a problem is underspecified, state the assumption used.\n\n### Programming assignments\n\n- Re-read the spec and any starter code; keep required function names, signatures, and I/O formats exactly.\n- Write readable, commented code in the required language and version.\n- Run the code. Test with the provided examples plus edge cases (empty input, single element, large input, invalid input).\n- Include a short README or comment block: how to run it, design choices, known limitations.\n- Do not submit code you have not run.\n\n### Data analysis and lab reports\n\n- Load and inspect the data before analysis; report sample size, missing values, and any cleaning done.\n- Choose methods that match the question and the data; justify the choice.\n- Produce figures and tables with titles, labeled axes, units, and captions; reference each one in the text.\n- Report results with appropriate precision, uncertainty, or significance. Separate results from interpretation.\n- Never fabricate, adjust, or \"smooth\" data. If results are inconclusive or contradict the hypothesis, report that honestly.\n\n### Case studies and business assignments\n\n- Apply the course framework the brief names (SWOT, Porter, DCF, etc.) correctly and explicitly.\n- Ground every claim in case facts or cited evidence.\n- Finish with specific, justified recommendations and the risks or trade-offs involved.\n\n### Presentations and slide decks\n\n- One message per slide; headline states the takeaway. Keep text sparse and put detail in speaker notes.\n- Roughly one slide per minute of speaking time unless specified.\n- Include a sources slide and speaker notes if the brief asks for them.\n\n### Short-answer and exam-style questions\n\n- Answer the question asked, directly, in the first sentence. Add only the reasoning needed for full marks.\n\n## 5. Verify before delivering\n\nRun this checklist against your working list from step 1. Fix problems before delivery rather than listing them as caveats.\n\n- [ ] Every explicit instruction in the brief is satisfied (sections, format, length, style, file type)\n- [ ] Every rubric row is visibly addressed\n- [ ] All facts, figures, and claims trace to a provided or retrieved source or to your own calculation\n- [ ] All citations exist, match the required style, and appear in both the text and the reference list\n- [ ] Numbers were computed, not guessed; code was run; figures render correctly\n- [ ] The thesis or answer is consistent from introduction to conclusion\n- [ ] Spelling, grammar, headings, numbering, and page layout are clean\n- [ ] Word count and page limits are met\n- [ ] Anything unverified is marked `[VERIFY]` and listed for the user\n\nFor high-stakes or long assignments, do a final pass as a skeptical grader: read the rubric again and ask where marks would be lost.\n\n## 6. Deliver\n\n- Produce the file in the format the brief requires (for example .docx for Word, .pdf, .pptx, .xlsx, or source files for code). If no format is specified, default to .docx for written work.\n- Use the file name the brief requires, otherwise a clear one such as `Surname_CourseCode_AssignmentName`.\n- In your hand-off message, keep it to a few lines:\n  1. What you produced and where it is\n  2. Any assumptions you made\n  3. Anything marked `[VERIFY]` or that needs the user's input (personal details, class-specific context, their own opinions or experiences)\n  4. One suggested next step, such as reviewing the argument or adding personal examples\n- Do not narrate every step you took.\n\n## Boundaries\n\n- Never fabricate sources, data, quotes, or results.\n- Never invent personal experiences, opinions, or reflections for the user. Where the brief requires them (reflective journals, personal statements), draft a structure with prompts and ask for their input.\n- Do not copy text from existing sources or from other students' work. All prose must be original and properly attributed.\n- Do not embed hidden text, metadata tricks, or formatting meant to conceal how the work was produced.\n- Respect any rules in the brief or course materials about collaboration and AI assistance, and surface them to the user.\n- If an assignment asks for something harmful or unethical, decline that part and say why.\n\n## Quick reference: default workflow\n\n1. Read brief and attachments, extract the requirements checklist\n2. Ask at most one clarifying question if truly needed, otherwise state assumptions\n3. Outline mapped to the rubric\n4. Gather sources and data, recording citations as you go\n5. Draft by assignment type\n6. Verify against the checklist\n7. Deliver the file with a short hand-off"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        224,
+        0
+      ],
+      "id": "00081656-b6dc-45d7-92a5-0e4ba21e8aed",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "jsCode": "const trigger = $('When Executed by Another Workflow').first().json;\nconst rawTaskId = trigger.task_id || new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-task';\nconst draftText = $input.first().json.text || $input.first().json.output || '';\n\n// Count total words in the draft\nconst wordCount = draftText.trim().split(/\\s+/).filter(Boolean).length;\n\n// Detect if the LLM output contains a Python or JavaScript code block\nconst codeMatch = draftText.match(/```(python|javascript|js|py)\\n([\\s\\S]*?)```/i);\nconst hasCode = Boolean(codeMatch);\nconst lang = codeMatch ? codeMatch[1].toLowerCase() : 'none';\nconst extractedCode = codeMatch ? codeMatch[2].trim() : '';\nconst ext = (lang === 'javascript' || lang === 'js') ? 'js' : 'py';\n\nreturn [\n  {\n    json: {\n      task_id: rawTaskId,\n      has_code: hasCode,\n      language: lang,\n      code_filename: `solution.${ext}`,\n      raw_code: extractedCode,\n      draft_filename: `${rawTaskId}-v1.md`,\n      word_count: wordCount,\n      full_draft_markdown: draftText\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        0
+      ],
+      "id": "12e54629-45e7-4f18-9968-39d3aafd4727",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "3c181620-9f9d-4607-8668-9afc29866655",
+              "leftValue": "={{ $json.has_code }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        816,
+        0
+      ],
+      "id": "57578875-93f4-4763-8058-abc5c3bb5afc",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nfor (const item of items) {\n  const codeStr = item.json.raw_code || \"\";\n  \n  // Split into lines and filter out empty whitespace lines\n  const lines = codeStr.split('\\n').filter(line => line.trim().length > 0);\n\n  // Attach metrics to the output JSON\n  item.json.code_line_count = lines.length;\n  item.json.syntax_checked = true;\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        -96
+      ],
+      "id": "0a2444e1-baa3-4646-b380-ebfe097ccba5",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "owner": {
+          "__rl": true,
+          "value": "Kaizen02403X",
+          "mode": "list",
+          "cachedResultName": "Kaizen02403X",
+          "cachedResultUrl": "https://github.com/Kaizen02403X"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "KAIZEN",
+          "mode": "list",
+          "cachedResultName": "KAIZEN",
+          "cachedResultUrl": "https://github.com/Kaizen02403X/KAIZEN"
+        },
+        "filePath": "=assignments/{{ $('Code in JavaScript').first().json.task_id }}/{{ $('Code in JavaScript').first().json.code_filename }}",
+        "fileContent": "={{ $('Code in JavaScript').first().json.raw_code }}",
+        "commitMessage": "=Add verified solution for {{ $('Code in JavaScript').first().json.task_id }}"
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        1264,
+        -96
+      ],
+      "id": "08b5d25f-c550-41aa-bc90-0694d0fc4b68",
+      "name": "Create a file",
+      "webhookId": "de3f5bf4-c754-41c2-a6dd-ed64e2b80590",
+      "credentials": {
+        "githubApi": {
+          "id": "zsZZUkZU9wkMGzIL",
+          "name": "GitHub account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $('Code in JavaScript').first().json.full_draft_markdown }}",
+        "name": "={{ $('Code in JavaScript').first().json.draft_filename }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1Rs59O7P8evqLse9DFq9YomliYG8I6I8U",
+          "mode": "list",
+          "cachedResultName": "KAIZEN AGENT",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1Rs59O7P8evqLse9DFq9YomliYG8I6I8U"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1264,
+        64
+      ],
+      "id": "f2f05944-465f-4ba7-80bc-8284b6ed5422",
+      "name": "Create file from text",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "CsZbbrRX7RJQ9Dm1",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-pro",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        160,
+        208
+      ],
+      "id": "0da60e57-9dce-4edf-893c-634377b08508",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "NDkBVMnRiSpaKM2r",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create file from text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Create a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a file": {
+      "main": [
+        [
+          {
+            "node": "Create file from text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "1731d8d3-e962-4535-83ee-c9646491926b",
+  "activeVersionId": "1731d8d3-e962-4535-83ee-c9646491926b",
+  "versionCounter": 82,
+  "triggerCount": 0,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-11-10T09:30:48.591Z",
+      "createdAt": "2026-11-10T09:30:48.591Z",
+      "role": "workflow:owner",
+      "workflowId": "Lc5k4MUcvB6p9glE",
+      "projectId": "BdVmUgeBV0EmboAd",
+      "project": {
+        "updatedAt": "2026-11-09T11:54:48.497Z",
+        "createdAt": "2026-10-27T05:47:40.623Z",
+        "id": "BdVmUgeBV0EmboAd",
+        "name": "Jayesh Aher <jayeshaher12@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "99d50621-a0fc-49e1-81d3-7588c1f90355"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version 1731d8d3",
+    "description": ""
+  }
+}

@@ -1,0 +1,282 @@
+{
+  "updatedAt": "2026-11-16T08:19:35.647Z",
+  "createdAt": "2026-10-28T06:16:41.951Z",
+  "id": "d1cllGMFuorUzGVa",
+  "name": "My workflow 1",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        240,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const triggerData = $('When Executed by Another Workflow').first().json;\nconst rawId = triggerData.task_id || new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-research';\nconst researchText = $input.first().json.text || $input.first().json.output || '';\nconst verifyFlags = researchText.match(/\\[VERIFY\\]/gi) || [];\n\nreturn [\n  {\n    json: {\n      task_id: rawId,\n      file_name: `${rawId}-sources.md`,\n      verified_sources_markdown: researchText,\n      unverified_count: verifyFlags.length\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        352
+      ],
+      "id": "3460592f-0a8b-451e-a1ea-ee1988cfe587",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $json.verified_sources_markdown }}",
+        "name": "={{ $json.file_name }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1Rs59O7P8evqLse9DFq9YomliYG8I6I8U",
+          "mode": "list",
+          "cachedResultName": "KAIZEN AGENT",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1Rs59O7P8evqLse9DFq9YomliYG8I6I8U"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1200,
+        352
+      ],
+      "id": "30079a40-95e3-4057-b95a-26b83ca544c1",
+      "name": "Create file from text",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "CsZbbrRX7RJQ9Dm1",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.crossref.org/works",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ $('When Executed by Another Workflow').first().json.topic || $('When Executed by Another Workflow').first().json.query || 'computer science' }}"
+            },
+            {
+              "name": "rows",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        608,
+        512
+      ],
+      "id": "ccbfeab2-9401-437a-beec-b57adb97abdf",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Topic / Request: {{ $('When Executed by Another Workflow').first().json.topic || $('When Executed by Another Workflow').first().json.query }}\nCitation Style: {{ $('When Executed by Another Workflow').first().json.citation_style || 'APA 7' }}\nSerpAPI Search Results: {{ JSON.stringify($('Google search').first().json.organic_results || []) }}\nVerified CrossRef DOI Metadata: {{ JSON.stringify(($json.message?.items || []).map(i => ({ title: i.title?.[0], doi: i.DOI, year: i.issued?.['date-parts']?.[0]?.[0], author: i.author }))) }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=Name:- research-and-citations\nProperties:- Finds, evaluates, and cites real sources for assignments, and builds correctly formatted reference lists in APA, MLA, Chicago, IEEE, or Harvard. Use when an assignment needs research, references, a bibliography, an annotated bibliography, or when the user wants citations checked.\n\n\n# Research and Citations\n\nFind real, credible sources, use them honestly, and cite them in the required style. The absolute rule: **never invent or guess a source, quote, statistic, page number, DOI, or URL.** If you did not open or retrieve it, it does not go in the reference list.\n\n## 1. Plan the search\n\n- Turn the assignment into 3 to 6 specific research questions.\n- List key terms plus synonyms and related terms for each question.\n- Check what the brief requires or forbids (source types, publication years, minimum number of sources, peer-reviewed only).\n- Start with the course readings and provided materials, then widen.\n\n## 2. Find sources\n\nPrefer, in order: peer-reviewed journal articles and academic books; government, institutional, and standards-body publications; reputable news and trade publications for current events; primary sources and datasets. Use scholarly search tools and library databases where available. Use general web search to locate leads, then trace claims back to the original source.\n\nDo not cite encyclopedias, AI summaries, content farms, or anonymous pages as evidence. They can help you find better sources.\n\n## 3. Evaluate each source\n\nQuickly check: who wrote it and what is their expertise; who published it and is it reviewed; how recent it is and whether recency matters for the topic; whether claims are backed by evidence; whether there is an obvious bias or commercial interest. Drop weak sources. Note when sources disagree.\n\n## 4. Take notes properly\n\nFor each source keep: full citation details, the key claim in your own words, the page or section where it appears, and how you plan to use it. Mark direct quotes with quotation marks and page numbers at the moment you record them so wording is never confused with paraphrase later.\n\n## 5. Use sources honestly\n\n- Paraphrase fully: change both the words and the sentence structure, and still cite.\n- Quote only when exact wording matters; keep quotes short and attribute them.\n- Do not over-rely on one source; synthesize across several.\n- Do not cite a source for something it does not say. Re-read the passage before citing it.\n- If you only read an abstract or a summary, say so or find the full text.\n\n## 6. Format citations\n\nUse the style the brief requires. If unspecified, ask, or default to APA 7 and say so. Basic patterns (adapt for edition, translator, DOI, or missing fields):\n\n- **APA 7 (journal):** Author, A. A., & Author, B. B. (Year). Title of article in sentence case. *Journal Name in Title Case*, *volume*(issue), pages. https://doi.org/xxxx. In text: (Author & Author, Year).\n- **APA 7 (book):** Author, A. A. (Year). *Title of book in sentence case* (Edition). Publisher.\n- **MLA 9 (journal):** Author Last, First, and First Last. \"Article Title in Title Case.\" *Journal Name*, vol. #, no. #, Year, pp. #-#. DOI or URL. In text: (Author page).\n- **Chicago (notes-bibliography, book):** Footnote: First Last, *Title* (Place: Publisher, Year), page. Bibliography: Last, First. *Title*. Place: Publisher, Year.\n- **IEEE:** [1] A. Author and B. Author, \"Title of article,\" *Abbrev. Journal*, vol. #, no. #, pp. #-#, Mon. Year. In text: [1].\n- **Harvard:** Author, A. (Year) 'Title of article', *Journal Name*, volume(issue), pp. #-#. In text: (Author, Year).\n\nFor websites, reports, datasets, and videos, follow the style's guide for that type and include author or organization, date, title, publisher, and URL with an access date where the style requires one.\n\nStyle details vary between institutions. If the course provides a style guide, follow that over these patterns.\n\n## 7. Verify before delivering\n\n- Every in-text citation has a reference entry, and every reference entry is cited in the text.\n- Each source was actually opened; DOIs and URLs resolve; author names, years, titles, and page numbers match the source.\n- Entries are alphabetized or numbered as the style requires and consistently formatted.\n- Quote pages are correct.\n- Anything unverifiable is removed or marked `[VERIFY]` for the user.\n\n## Outputs\n\nDepending on the request: a reference list, an annotated bibliography (full citation plus a 2 to 4 sentence summary and evaluation per source), a source table (source, claim, how it will be used), or a citation audit that lists every problem found in an existing draft.\n"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        832,
+        512
+      ],
+      "id": "8185b01d-92ca-4f8d-87af-690e264899ef",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "q": "={{ $json.topic || $json.query || $json.chatInput || \"academic research\" }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApi",
+      "typeVersion": 1,
+      "position": [
+        448,
+        400
+      ],
+      "id": "28cfd868-49dd-4c98-9451-8b0f66f69d65",
+      "name": "Google search",
+      "credentials": {
+        "serpApi": {
+          "id": "Wy4V89ojM3FZ99Tx",
+          "name": "SerpApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        768,
+        720
+      ],
+      "id": "b741b9fd-6b7c-4de5-b099-f5b164f3ec20",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "NDkBVMnRiSpaKM2r",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Create file from text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create file from text": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google search": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "2e6a2ca3-de52-4c2f-b6dc-0f900d863335",
+  "activeVersionId": "2e6a2ca3-de52-4c2f-b6dc-0f900d863335",
+  "versionCounter": 242,
+  "triggerCount": 0,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-10-28T06:16:41.953Z",
+      "createdAt": "2026-10-28T06:16:41.953Z",
+      "role": "workflow:owner",
+      "workflowId": "d1cllGMFuorUzGVa",
+      "projectId": "BdVmUgeBV0EmboAd",
+      "project": {
+        "updatedAt": "2026-11-09T11:54:48.497Z",
+        "createdAt": "2026-10-27T05:47:40.623Z",
+        "id": "BdVmUgeBV0EmboAd",
+        "name": "Jayesh Aher <jayeshaher12@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "99d50621-a0fc-49e1-81d3-7588c1f90355"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version 2e6a2ca3",
+    "description": ""
+  }
+}

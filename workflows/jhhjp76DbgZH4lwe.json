@@ -1,0 +1,281 @@
+{
+  "updatedAt": "2026-11-16T08:21:51.296Z",
+  "createdAt": "2026-11-13T08:54:03.867Z",
+  "id": "jhhjp76DbgZH4lwe",
+  "name": "My workflow 5",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b6bab4f1-7ce5-43e4-a988-2eb8ef3747eb",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst now = new Date();\nconst taskId = input.task_id || now.toISOString().slice(0, 10).replace(/-/g, '') + '-plan';\n\nconst rawEstimatedHours = Number(input.estimated_hours) || 12;\nconst paddedHours = Math.round(rawEstimatedHours * 1.25 * 10) / 10;\nconst daysUntilDue = Number(input.days_until_due) || 5;\nconst effectiveDays = Math.max(1, daysUntilDue - 1);\nconst dailyAvailableHours = Number(input.daily_available_hours) || 3;\n\nconst totalAvailableHours = effectiveDays * dailyAvailableHours;\nconst overloadDetected = paddedHours > totalAvailableHours;\nconst deficitHours = overloadDetected ? Math.round((paddedHours - totalAvailableHours) * 10) / 10 : 0;\n\nreturn [\n  {\n    json: {\n      task_id: taskId,\n      current_date_ist: now.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' }),\n      assignments_list: input.assignments || input.query || input.chatInput || 'AI Agent Project (Weight: 30%, Due in 5 days)',\n      raw_estimated_hours: rawEstimatedHours,\n      padded_hours_with_25_pct_buffer: paddedHours,\n      days_until_due: daysUntilDue,\n      effective_work_days_after_24h_buffer: effectiveDays,\n      total_available_hours: totalAvailableHours,\n      overload_detected: overloadDetected,\n      deficit_hours: deficitHours,\n      instructor_email: input.instructor_email || 'instructor@example.com',\n      plan_filename: `${taskId}-schedule.md`\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        0
+      ],
+      "id": "d1952a84-64d8-4d8d-ba95-9fafa06eab49",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Task ID: {{ $json.task_id }}\nCurrent Date (IST): {{ $json.current_date_ist }}\nAssignments & Deadlines: {{ $json.assignments_list }}\n\nComputed Schedule Math:\n- Raw Estimated Effort (hours): {{ $json.raw_estimated_hours }}\n- Padded Effort (+25% buffer): {{ $json.padded_hours_with_25_pct_buffer }}\n- Total Days Until Due: {{ $json.days_until_due }}\n- Effective Working Days (with 24h early buffer): {{ $json.effective_work_days_after_24h_buffer }}\n- Total Available Capacity (hours): {{ $json.total_available_hours }}\n- Overload Detected: {{ $json.overload_detected }} (Deficit: {{ $json.deficit_hours }} hours)\n\nIf Overload Detected is true, include a polite, ready-to-send extension request email at the bottom under a heading named \"## Extension Request Draft\".",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=# Deadline Planner\n\nConvert a pile of assignments into a clear sequence of dated actions. A good plan is realistic, front-loads the risky parts, and leaves buffer for things going wrong.\n\n## 1. Gather the facts\n\nFor each assignment collect: title and course, due date and time (and time zone), weight in the final grade, length or scope, whether it has parts or drafts due earlier, how much work is already done, and any dependencies (data to collect, group members, supervisor sign-off, lab access).\n\nAlso ask once for available working time: hours per weekday and weekend, blocked days (travel, exams, work, holidays), and when they work best. If the user will not say, assume 2 focused hours on weekdays and 4 on weekend days and state that assumption.\n\nIf a date is ambiguous (no year, no time zone, \"end of week\"), confirm it. Always get today's date from a time tool rather than guessing.\n\n## 2. Estimate effort\n\nBreak each assignment into stages and give each an hour estimate: understand the brief, research and reading, outline, first draft or solution, revision, formatting and citations, final check and submission. Use these rough defaults when the user has no better data, then adjust:\n\n- Short written response (under 800 words): 3 to 5 hours total\n- Essay or report (1,500 to 3,000 words): 10 to 20 hours\n- Problem set: 3 to 8 hours\n- Coding assignment: 6 to 20 hours\n- Lab report: 6 to 12 hours plus data collection\n- Presentation: 6 to 12 hours including rehearsal\n\nAdd 25 percent to every estimate as a planning-fallacy correction.\n\n## 3. Schedule backward\n\n1. Set an internal finish date 24 to 48 hours before each real deadline. That is the buffer.\n2. Place stages backward from the internal deadline, with revision and final check last.\n3. Put the riskiest or most uncertain stage (data collection, unfamiliar topic, needs other people) as early as possible.\n4. Fit stages into available days without exceeding the hours the user has. If the load does not fit, say so plainly and propose options (cut scope where allowed, request an extension early, drop a low-weight item, reduce polish on low-stakes work).\n5. Avoid scheduling the same hour twice. Keep at least one lighter day per week if the load allows.\n\n## 4. Prioritize\n\nWhen assignments compete, rank by: nearest deadline, weight in the grade, effort remaining, and penalty for lateness. Do the high-weight, near-deadline items first. Flag low-weight items that can be done at a \"good enough\" level.\n\n## 5. Output\n\n- **This week**: a day-by-day list with specific tasks and hour estimates (\"Tue: read sources 1 to 3 and take notes, 2h\").\n- **Milestone table**: assignment, milestone, date, status.\n- **Risks**: the two or three things most likely to derail the plan, and what to do if they do.\n- **Next action**: one task to start right now.\n\nOffer the plan as a checklist, calendar-ready list, or spreadsheet. If the session has reminder or scheduling tools and the user wants reminders, set them. If it does not, say that, and give dated lines the user can paste into their own calendar.\n\n## 6. Re-plan\n\nWhen the user reports a slip, a new assignment, or a changed deadline: recompute what is left, keep the buffers, move the lowest-priority work first, and show only what changed. If a deadline is now unrealistic, help the user write a brief, honest extension request to the instructor with a proposed new date.\n\n## Rules\n\n- Never hide an overload. State clearly when the plan does not fit the time available.\n- Do not schedule past reasonable limits (no all-night plans). Protect sleep and meals.\n- Keep plans short enough to follow. Detail the next 7 days; summarize beyond that.\n\n"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        400,
+        0
+      ],
+      "id": "1ec7e235-7c42-4a82-93f0-3a2b1ac97cb8",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $json.text || $json.output }}",
+        "name": "={{ $('Code in JavaScript').first().json.plan_filename }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1Rs59O7P8evqLse9DFq9YomliYG8I6I8U",
+          "mode": "list",
+          "cachedResultName": "KAIZEN AGENT",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1Rs59O7P8evqLse9DFq9YomliYG8I6I8U"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        768,
+        0
+      ],
+      "id": "5fd07a93-3230-4337-a429-fe6bdb19beec",
+      "name": "Create file from text",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "CsZbbrRX7RJQ9Dm1",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "ec10de1b-86db-4b07-b1b0-696ebef626b4",
+              "leftValue": "={{ $('Code in JavaScript').first().json.overload_detected }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        992,
+        0
+      ],
+      "id": "49b0e46f-e69a-4165-8740-2e856f091aee",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "=Extension Request: {{ $('Code in JavaScript').first().json.task_id }}",
+        "message": "={{ $('Basic LLM Chain').first().json.text || $('Basic LLM Chain').first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1216,
+        -96
+      ],
+      "id": "bcf7de32-bbcd-4463-b342-87f4c1596a2c",
+      "name": "Create a draft",
+      "webhookId": "aa7e9514-e0e6-47ba-a713-3169380d84cd",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gEMVhb7C9nYBDjLK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        336,
+        208
+      ],
+      "id": "3a09857b-0447-4a6b-9955-4f5806de2334",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "NDkBVMnRiSpaKM2r",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Create file from text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create file from text": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create a draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "e2d304f4-9c41-4fdd-a5c9-65713dbe4f3f",
+  "activeVersionId": "e2d304f4-9c41-4fdd-a5c9-65713dbe4f3f",
+  "versionCounter": 34,
+  "triggerCount": 0,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-11-13T08:54:03.869Z",
+      "createdAt": "2026-11-13T08:54:03.869Z",
+      "role": "workflow:owner",
+      "workflowId": "jhhjp76DbgZH4lwe",
+      "projectId": "BdVmUgeBV0EmboAd",
+      "project": {
+        "updatedAt": "2026-11-09T11:54:48.497Z",
+        "createdAt": "2026-10-27T05:47:40.623Z",
+        "id": "BdVmUgeBV0EmboAd",
+        "name": "Jayesh Aher <jayeshaher12@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "99d50621-a0fc-49e1-81d3-7588c1f90355"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version e2d304f4",
+    "description": ""
+  }
+}

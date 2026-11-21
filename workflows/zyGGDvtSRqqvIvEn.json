@@ -1,0 +1,202 @@
+{
+  "updatedAt": "2026-11-16T08:20:45.200Z",
+  "createdAt": "2026-11-12T04:57:54.721Z",
+  "id": "zyGGDvtSRqqvIvEn",
+  "name": "My workflow 3",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3ae6aba6-aa40-4ea9-9582-561949973224",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst taskId = input.task_id || new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-audit';\nconst brief = input.brief || 'Write a 500-word academic essay with APA 7 citations.';\nconst rubric = input.rubric || 'Thesis & Argument (30%), Evidence & Citations (30%), Organization (20%), Mechanics & Length (20%)';\nconst draft = input.draft_text || input.full_draft_markdown || input.query || 'Sample draft text for testing the rubric checker.';\nconst targetWords = Number(input.target_word_count) || 500;\n\nconst words = draft.trim().split(/\\s+/).filter(Boolean).length;\nconst minWords = Math.floor(targetWords * 0.95);\nconst maxWords = Math.ceil(targetWords * 1.05);\nconst withinWordTolerance = words >= minWords && words <= maxWords;\n\nconst verifyTags = (draft.match(/\\[VERIFY\\]/gi) || []).length;\nconst inlineCitations = (draft.match(/\\([A-Za-z][^)]*,\\s*\\d{4}[^)]*\\)|\\[\\d+\\]/g) || []).length;\nconst headingsCount = (draft.match(/^#{1,6}\\s+.+/gm) || []).length;\n\nreturn [\n  {\n    json: {\n      task_id: taskId,\n      brief,\n      rubric,\n      draft_text: draft,\n      target_word_count: targetWords,\n      actual_word_count: words,\n      allowed_word_range: `${minWords} - ${maxWords}`,\n      within_5_percent_tolerance: withinWordTolerance,\n      inline_citation_count: inlineCitations,\n      verify_flag_count: verifyTags,\n      heading_count: headingsCount,\n      report_filename: `${taskId}-rubric-report.md`\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "1e164b57-19d7-405d-bef8-3a640986f9e9",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Task ID: {{ $json.task_id }}\nAssignment Brief: {{ $json.brief }}\nRubric Criteria: {{ $json.rubric }}\n\nHard-Requirement Gate Metrics (Computed by Code):\n- Target Word Count: {{ $json.target_word_count }} (Allowed +/- 5% Range: {{ $json.allowed_word_range }})\n- Actual Word Count: {{ $json.actual_word_count }} (Within 5% Tolerance: {{ $json.within_5_percent_tolerance }})\n- Detected In-Text Citations: {{ $json.inline_citation_count }}\n- Detected Markdown Headings: {{ $json.heading_count }}\n- Unresolved [VERIFY] Flags: {{ $json.verify_flag_count }}\n\nDraft to Audit:\n{{ $json.draft_text }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=# Rubric Checker\n\nAct as a strict, fair grader. The goal is to find where marks would be lost while there is still time to fix it. Do not flatter the draft and do not inflate scores.\n\n## Inputs needed\n\n- The assignment brief\n- The rubric or marking criteria (if none exists, derive criteria from the brief and say so)\n- The draft or finished deliverable\n- Optional: instructor feedback on earlier work, course readings the draft should use\n\nIf the rubric is missing and the brief is vague, ask for the grading criteria once. If they are unavailable, use the default criteria at the bottom.\n\n## Process\n\n1. **Build the criteria list.** Copy every rubric row with its weight and performance levels. Add every hard requirement from the brief that the rubric omits (word count, format, citation style, required sections, file type).\n2. **Locate evidence.** For each criterion, find where the draft meets it. Cite the section, paragraph, or page. If you cannot point to evidence, the criterion is not met.\n3. **Score each row** using the rubric's own level descriptions. Pick the level a grader would, and give a one-sentence reason. Do not average across rows or round up.\n4. **Check hard requirements** as pass or fail: length within tolerance, required sections present, correct citation style, all sources cited and listed, correct file format and name, required inputs (data, readings, case facts) actually used.\n5. **Find the highest-value fixes.** Rank problems by marks at stake multiplied by ease of fixing. A missing required section outranks a clumsy sentence.\n6. **Check for integrity risks:** unsupported claims, citations that cannot be verified, quotes without attribution, passages that read as copied, numbers that do not match the data. Flag each one.\n\n## Output format\n\n1. **Estimated result**: a score or grade band with a one-line justification, and your confidence (high, medium, low) given how clear the rubric is.\n2. **Rubric table**: criterion, weight, level reached, evidence location, what would reach the next level.\n3. **Hard requirements**: pass or fail list.\n4. **Top fixes**: at most 7, ordered by marks gained per effort, each stated as a concrete action (\"Add a counterargument paragraph after section 3 addressing X\"), not a vague comment (\"improve analysis\").\n5. **What is already strong**: one or two lines, so the user does not break it during revision.\n\n## Rules\n\n- Quote the draft when pointing at a problem so the user can find it.\n- Never rewrite the whole draft unless asked. This skill diagnoses; the revision skill fixes.\n- If two fixes conflict (for example, adding content breaks the word limit), say what to cut.\n- Re-run the check after major revisions when asked.\n\n## Default criteria (use only when no rubric exists)\n\nAnswers the question asked; thesis or solution is clear; evidence is accurate and sufficient; reasoning is sound and goes beyond description; structure is logical; sources are credible and correctly cited; writing is clear and error-free; format and length requirements are met."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        448,
+        0
+      ],
+      "id": "e063af1e-46c0-4b27-82dc-ec83f4bd66d3",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $json.text || $json.output }}",
+        "name": "={{ $('Code in JavaScript').first().json.report_filename }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1Rs59O7P8evqLse9DFq9YomliYG8I6I8U",
+          "mode": "list",
+          "cachedResultName": "KAIZEN AGENT",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1Rs59O7P8evqLse9DFq9YomliYG8I6I8U"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        816,
+        0
+      ],
+      "id": "91702006-e02a-45d4-a4c3-ad26882ca395",
+      "name": "Create file from text",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "CsZbbrRX7RJQ9Dm1",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        384,
+        208
+      ],
+      "id": "190a5c6e-d016-4271-aeee-a456325ad1a7",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "NDkBVMnRiSpaKM2r",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Create file from text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "5853c415-7d41-4915-81c6-d3f7ce4204c0",
+  "activeVersionId": "5853c415-7d41-4915-81c6-d3f7ce4204c0",
+  "versionCounter": 32,
+  "triggerCount": 0,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-11-12T04:57:54.724Z",
+      "createdAt": "2026-11-12T04:57:54.724Z",
+      "role": "workflow:owner",
+      "workflowId": "zyGGDvtSRqqvIvEn",
+      "projectId": "BdVmUgeBV0EmboAd",
+      "project": {
+        "updatedAt": "2026-11-09T11:54:48.497Z",
+        "createdAt": "2026-10-27T05:47:40.623Z",
+        "id": "BdVmUgeBV0EmboAd",
+        "name": "Jayesh Aher <jayeshaher12@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "99d50621-a0fc-49e1-81d3-7588c1f90355"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version 5853c415",
+    "description": ""
+  }
+}

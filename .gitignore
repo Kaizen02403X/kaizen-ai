@@ -1,0 +1,20 @@
+# Virtual environment & Python cache
+.venv/
+__pycache__/
+*.pyc
+
+# Compiled macOS binary (rebuild from vision_ocr.swift)
+vision_ocr
+
+# Personal voice biometrics, backups & runtime logs
+my_voiceprint.npy
+*.npy
+*.log
+*.bak*
+secret.py
+
+# Environment secrets & OS metadata
+.env
+*.pem
+*.key
+.DS_Store

@@ -1,0 +1,136 @@
+{
+  "updatedAt": "2026-11-20T08:37:00.900Z",
+  "createdAt": "2026-11-18T17:02:18.566Z",
+  "id": "zcpX5kGQr9gT5aZe",
+  "name": "My workflow 8",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kaizen-voice",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "50ec65cf-a156-4ca3-84bd-605e74b0a1d9",
+      "name": "Webhook",
+      "webhookId": "9ea0811f-ddca-4413-93ff-a6713a1cac60"
+    },
+    {
+      "parameters": {
+        "agentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "oBWnU2IO6yuljT92",
+          "cachedResultName": "KAIZEN"
+        },
+        "message": "={{ $json.body.command }}",
+        "advanced": {
+          "session": {
+            "session": {
+              "sessionIdType": "customKey",
+              "sessionKey": "={{ $json.body?.sessionId || $json.sessionId || ('voice-' + $now.toMillis()) }}"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.messageAnAgent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        -128
+      ],
+      "id": "f1bdf27a-38a3-49a8-9a45-c5df113126d4",
+      "name": "Message an Agent",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ text: $json.text || $json.output || $json.error?.message || \"Done.\" }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        672,
+        0
+      ],
+      "id": "02c47e8f-e581-4484-8f93-f57e00ce6a1e",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Message an Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message an Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "7da12e8d-876e-4455-b8b2-b143ee64830f",
+  "activeVersionId": "7da12e8d-876e-4455-b8b2-b143ee64830f",
+  "versionCounter": 22,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-11-18T17:02:18.568Z",
+      "createdAt": "2026-11-18T17:02:18.568Z",
+      "role": "workflow:owner",
+      "workflowId": "zcpX5kGQr9gT5aZe",
+      "projectId": "BdVmUgeBV0EmboAd",
+      "project": {
+        "updatedAt": "2026-11-09T11:54:48.497Z",
+        "createdAt": "2026-10-27T05:47:40.623Z",
+        "id": "BdVmUgeBV0EmboAd",
+        "name": "Jayesh Aher <jayeshaher12@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "99d50621-a0fc-49e1-81d3-7588c1f90355"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version 7da12e8d",
+    "description": ""
+  }
+}

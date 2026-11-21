@@ -1,0 +1,281 @@
+{
+  "updatedAt": "2026-11-17T14:00:19.406Z",
+  "createdAt": "2026-11-16T18:35:46.488Z",
+  "id": "SYNkINnPh89zgdBH",
+  "name": "My workflow 7",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "db7ca5c3-ed96-41f6-a79e-24ec12caad24",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Solve every question and map the exact answers to their Google Form entry IDs.\n\nForm Fields Schema:\n{{ JSON.stringify($json.form_fields, null, 2) }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are an automated form-filling engine. You will receive a JSON list of Google Form fields (`entry_id`, `question`, `row_to_match`, `input_type`, and `available_choices`).\n\nYOUR RULES:\n1. Solve every question accurately.\n2. For Radio Buttons, Dropdowns, and Match the Columns / Grid (`row_to_match`), your answer MUST be an exact character-for-character match to one string in `available_choices`.\n3. For Checkboxes (Multi-Select), output an array of exact matching strings from `available_choices`.\n4. For Subjective Answers, write a clear, complete, academic answer.\n5. Output ONLY a raw JSON object where keys are the `entry_id` (e.g. \"entry.123456\") and values are the selected answer(s). Do NOT include markdown formatting or explanations."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        592,
+        0
+      ],
+      "id": "8656065b-eedb-40d9-8fcf-0c5447e4b13a",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        528,
+        208
+      ],
+      "id": "20c8d1fe-5f42-4de8-82bc-71bdd82856af",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "NDkBVMnRiSpaKM2r",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ ($json.form_url || $json.url || $json.query || $json.chatInput || '').match(/https?:\\/\\/[^\\s\"'<>]+/)?.[0] || '' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Cookie",
+              "value": "=S=spreadsheet_forms=2dS4B-AcdB1TsKkT7N14EnfqeneU1UVS16n1pV2XdvE; COMPASS=spreadsheet_forms=CjIACWuJV5PXWDpH2FO6BsFOMjgqLZvKv0efBxuHeUBWTej7ukCry_AE0WmTBRwfDWvfahC1q_HXBho0AAlriVcky9xi2eADX_9rt7P55WZthy3JFj2ZMJ8Ftaw3w0M05ECAQktUuP3ZlwBSMpxW4A==; SEARCH_SAMESITE=CgQIgqIB; GCL_AW_P=GCL.1791893928.EAIaIQobChMI-qe4h_22lwMVlAuDAx3UnQCmEAAYASAAEgI8FPD_BwE; SID=g.a000Egn_ChwWCj4XYf_gkylGxQPVH6vE0Udh0d492T_g3KNINc_Rlwzz4jjS45Aemw0e1GCyIAACgYKAd0SARISFQHGX2Mi6dzU5Pzx0dJBPbPKztzcQxoVAUF8yKp93jOPHWOoUY_ZcRue3-HL0076; __Secure-1PSID=g.a000Egn_ChwWCj4XYf_gkylGxQPVH6vE0Udh0d492T_g3KNINc_R9RE_1c0kBn5Oa8Q0OXeXFwACgYKAdoSARISFQHGX2MiLspS6nOJYWvmSC7oC68DKBoVAUF8yKrC8t1lvXhCZYE3Ztux2_bc0076; __Secure-3PSID=g.a000Egn_ChwWCj4XYf_gkylGxQPVH6vE0Udh0d492T_g3KNINc_RkgtehGavKXbXm4k-iWfr0wACgYKAakSARISFQHGX2Mi5s-aJt-1wR4CKf64uFUSoBoVAUF8yKp59lb01jMYGSe4_qe0Bub70076; HSID=ACrNEEGnPL_eGrKG6; SSID=AhuU9fWhAr2fg_P9_; APISID=eQgpS-4DYnNTARCb/AQAEjS6fKXuBgW-IG; SAPISID=xBUG1tNKqKb251C1/Accp5X9ovCGulU-Y3; __Secure-1PAPISID=xBUG1tNKqKb251C1/Accp5X9ovCGulU-Y3; __Secure-3PAPISID=xBUG1tNKqKb251C1/Accp5X9ovCGulU-Y3; OSID=g.a000Egn_CuWNu6bpMe_PyJx2yP8D6VXcW7RCGM1kli-PRtMq1EE3SWgFDuy_vl6oTiVo0X2KxwACgYKAXcSARISFQHGX2MiA7OPQo1fpxAPV5u7iqfypBoVAUF8yKrfCrz4Iru_Po1UFd4QvtG30076; __Secure-OSID=g.a000Egn_CuWNu6bpMe_PyJx2yP8D6VXcW7RCGM1kli-PRtMq1EE3EjzWnMf-r7U-oVTiSX145QACgYKAXwSARISFQHGX2MiMuwfj2e3KJpqeCjc3MvCUhoVAUF8yKoIsB1YcAiuBvBSQMnLfmo10076; AEC=Aaa9EJpZqLRSyv46FTlLIxZCKYtfJxtmjdhdkKF3LrQfzSWt5cNAMIJt; S=sso=D-A82VKqrzujKVmmf4kAjW7soEq5-fHQhzK25NtiF6g; NID=CqUDCAES1wIBM9Agl0CgZSQXwDyQcZiU_jKwQTMcpBsE-E4AHg0h0vwu2Ov9_A8v2sW4H_6MS-ShvLgEn16cjABLZ3yLH1NKsX5uvH12vTIMkzEh5wJOoyyOO8c7CvjsjyaW8BfMoBbM1kFI1F-UIsqb5Sa9K2tPFOWn4tEWE6Kd7tj38NRh6Tmmc38jSTBzrAdjbTeG4bY8HFWhS0OheOKJSgDID8IdKS7VPlmcS3_4mACh-lNlHSmCyz1pBK74B1jwNsnSqqox-gDbnk3T4Va30aFeasQCVJ9c9zJnuuMLM0lBo8KjmZnSThb_XduVJQhlpswzXtRsyIYr3e9HS1enp7WNlVvJN14aD93XE6mdVyCwwMIKgUMaOFnx-ObeBoU2sDcRioBIWcyN7qU08QcN5aPruHoLSsGA5oNyEpyU0wq1EoZlXASYSjt-QxTOXuRfaqxbsSB787qYyRHAKAEyRQFwSkLPnFmxTNu1pkpyDF9SCQyga4-7PZmscH79_puKEO2euB0gAvLGDzVQr8fWiwW3Lhe-mJYarYDmUIM-1d-QLmZsDA; OTZ=8876899_34_34__34_; __Secure-1PSIDTS=sidts-CjYBnJZzapO5V-7XakjEGd_HFT72JJB31ByjMYULGCe_lU1m7zKidsPUGGtHQiANSduhVDOiPakQAA; __Secure-1PSIDRTS=sidts-CjYBnJZzapO5V-7XakjEGd_HFT72JJB31ByjMYULGCe_lU1m7zKidsPUGGtHQiANSduhVDOiPakQAA; __Secure-3PSIDTS=sidts-CjYBnJZzapO5V-7XakjEGd_HFT72JJB31ByjMYULGCe_lU1m7zKidsPUGGtHQiANSduhVDOiPakQAA; __Secure-3PSIDRTS=sidts-CjYBnJZzapO5V-7XakjEGd_HFT72JJB31ByjMYULGCe_lU1m7zKidsPUGGtHQiANSduhVDOiPakQAA; SIDCC=APD_SKEwVZ9PnSZC2oSfqYkv5iYP5onS9MvJYzUMoaAwAvQaZewWAq_0pB7-LQU6jsedaWepcg; __Secure-1PSIDCC=APD_SKGrq3YY9OslRZ02sFIrM0XF-UHMHIE_wXOhyvgzkaDhHU5MJorMRiudhVsd5kCCoZ_0W70; __Secure-3PSIDCC=APD_SKHhJY47g0DTobBZmgDMk7IhqfsH9Q5-12pfuAXs8uiNcqzoRD79bFmQrZpnbtCeCnj6sCw"
+            },
+            {
+              "name": "User-Agent",
+              "value": "ozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {}
+          },
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "28c67b02-b3d6-4a71-9876-5a76b369b44d",
+      "name": "Get from HTML"
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = $input.first().json.data || '';\n\n// 1. Extract the form submission URL (/formResponse)\nconst actionMatch = html.match(/action=\"(https:\\/\\/docs\\.google\\.com\\/forms\\/[^\"]+\\/formResponse)\"/);\nconst rawUrl = $('Get Form HTML').first().json.url || '';\nconst fallbackUrl = rawUrl.replace(/\\/viewform.*$/, '/formResponse');\nconst submitUrl = actionMatch ? actionMatch[1] : fallbackUrl;\n\n// 2. Extract Google Forms internal FB_PUBLIC_LOAD_DATA_ array\nconst dataMatch = html.match(/FB_PUBLIC_LOAD_DATA_\\s*=\\s*(\\[\\s*null[\\s\\S]*?\\]);\\s*<\\/script>/);\nif (!dataMatch) {\n  throw new Error('Could not find Google Form fields. Make sure the link is a public Google Form /viewform URL.');\n}\n\nconst rawData = JSON.parse(dataMatch[1]);\nconst questionsRaw = (rawData[1] && rawData[1][1]) ? rawData[1][1] : [];\n\nconst typeMap = {\n  0: 'Short Subjective Answer',\n  1: 'Paragraph Subjective Answer',\n  2: 'Multiple Choice (Radio Button - Pick 1)',\n  3: 'Dropdown (Pick 1)',\n  4: 'Checkboxes (Multi-Select)',\n  7: 'Match the Columns / Grid (Pick 1 column per row)'\n};\n\nconst parsedFields = [];\n\nfor (const q of questionsRaw) {\n  const questionTitle = q[1];\n  const questionType = q[3];\n  const entries = q[4];\n\n  if (!entries || !Array.isArray(entries)) continue;\n\n  for (const entry of entries) {\n    const entryId = `entry.${entry[0]}`;\n    const rowLabel = (entry[3] && entry[3][0]) ? entry[3][0] : null;\n    const optionsRaw = entry[1] || [];\n    const validOptions = optionsRaw\n      .map(opt => opt[0])\n      .filter(opt => opt !== null && opt !== undefined && opt !== '');\n\n    parsedFields.push({\n      entry_id: entryId,\n      question: questionTitle,\n      row_to_match: rowLabel,\n      input_type: typeMap[questionType] || 'Text Input',\n      available_choices: validOptions.length > 0 ? validOptions : 'Write a subjective text answer'\n    });\n  }\n}\nconst fbzxMatch = html.match(/name=\"fbzx\"\\s+value=\"([^\"]+)\"/);\nconst fbzx = fbzxMatch ? fbzxMatch[1] : '';\nreturn [{\n  json: {\n    submit_url: submitUrl,\n    fbzx: fbzx,\n    total_fields: parsedFields.length,\n    form_fields: parsedFields\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "5d856c20-1081-4f64-9314-11f8150a319c",
+      "name": "Extract Form Schema"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawText = $input.first().json.text || $input.first().json.output || '{}';\nconst cleanJsonText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();\nconst answers = JSON.parse(cleanJsonText);\n\nconst params = new URLSearchParams();\n\nfor (const [entryKey, value] of Object.entries(answers)) {\n  if (Array.isArray(value)) {\n    for (const item of value) {\n      params.append(entryKey, String(item));\n    }\n  } else if (value !== null && value !== undefined) {\n    params.append(entryKey, String(value));\n  }\n}\n\n// Required Google Form state parameters\nparams.append('fvv', '1');\nparams.append('pageHistory', '0');\nconst fbzxToken = $('Extract Form Schema').first().json.fbzx;\nif (fbzxToken) {\n  params.append('fbzx', fbzxToken);\n}\n\nreturn [{\n  json: {\n    submit_url: $('Extract Form Schema').first().json.submit_url,\n    submitted_answers: answers,\n    urlencoded_body: params.toString()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        0
+      ],
+      "id": "3dedc7d4-ac3a-442e-8af8-b979b0265648",
+      "name": "Build Submission Payload"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.submit_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            },
+            {
+              "name": "Cookie",
+              "value": "S=spreadsheet_forms=2dS4B-AcdB1TsKkT7N14EnfqeneU1UVS16n1pV2XdvE; COMPASS=spreadsheet_forms=CjIACWuJV5PXWDpH2FO6BsFOMjgqLZvKv0efBxuHeUBWTej7ukCry_AE0WmTBRwfDWvfahC1q_HXBho0AAlriVcky9xi2eADX_9rt7P55WZthy3JFj2ZMJ8Ftaw3w0M05ECAQktUuP3ZlwBSMpxW4A==; SEARCH_SAMESITE=CgQIgqIB; GCL_AW_P=GCL.1791893928.EAIaIQobChMI-qe4h_22lwMVlAuDAx3UnQCmEAAYASAAEgI8FPD_BwE; SID=g.a000Egn_ChwWCj4XYf_gkylGxQPVH6vE0Udh0d492T_g3KNINc_Rlwzz4jjS45Aemw0e1GCyIAACgYKAd0SARISFQHGX2Mi6dzU5Pzx0dJBPbPKztzcQxoVAUF8yKp93jOPHWOoUY_ZcRue3-HL0076; __Secure-1PSID=g.a000Egn_ChwWCj4XYf_gkylGxQPVH6vE0Udh0d492T_g3KNINc_R9RE_1c0kBn5Oa8Q0OXeXFwACgYKAdoSARISFQHGX2MiLspS6nOJYWvmSC7oC68DKBoVAUF8yKrC8t1lvXhCZYE3Ztux2_bc0076; __Secure-3PSID=g.a000Egn_ChwWCj4XYf_gkylGxQPVH6vE0Udh0d492T_g3KNINc_RkgtehGavKXbXm4k-iWfr0wACgYKAakSARISFQHGX2Mi5s-aJt-1wR4CKf64uFUSoBoVAUF8yKp59lb01jMYGSe4_qe0Bub70076; HSID=ACrNEEGnPL_eGrKG6; SSID=AhuU9fWhAr2fg_P9_; APISID=eQgpS-4DYnNTARCb/AQAEjS6fKXuBgW-IG; SAPISID=xBUG1tNKqKb251C1/Accp5X9ovCGulU-Y3; __Secure-1PAPISID=xBUG1tNKqKb251C1/Accp5X9ovCGulU-Y3; __Secure-3PAPISID=xBUG1tNKqKb251C1/Accp5X9ovCGulU-Y3; OSID=g.a000Egn_CuWNu6bpMe_PyJx2yP8D6VXcW7RCGM1kli-PRtMq1EE3SWgFDuy_vl6oTiVo0X2KxwACgYKAXcSARISFQHGX2MiA7OPQo1fpxAPV5u7iqfypBoVAUF8yKrfCrz4Iru_Po1UFd4QvtG30076; __Secure-OSID=g.a000Egn_CuWNu6bpMe_PyJx2yP8D6VXcW7RCGM1kli-PRtMq1EE3EjzWnMf-r7U-oVTiSX145QACgYKAXwSARISFQHGX2MiMuwfj2e3KJpqeCjc3MvCUhoVAUF8yKoIsB1YcAiuBvBSQMnLfmo10076; AEC=Aaa9EJpZqLRSyv46FTlLIxZCKYtfJxtmjdhdkKF3LrQfzSWt5cNAMIJt; S=sso=D-A82VKqrzujKVmmf4kAjW7soEq5-fHQhzK25NtiF6g; NID=CqUDCAES1wIBM9Agl0CgZSQXwDyQcZiU_jKwQTMcpBsE-E4AHg0h0vwu2Ov9_A8v2sW4H_6MS-ShvLgEn16cjABLZ3yLH1NKsX5uvH12vTIMkzEh5wJOoyyOO8c7CvjsjyaW8BfMoBbM1kFI1F-UIsqb5Sa9K2tPFOWn4tEWE6Kd7tj38NRh6Tmmc38jSTBzrAdjbTeG4bY8HFWhS0OheOKJSgDID8IdKS7VPlmcS3_4mACh-lNlHSmCyz1pBK74B1jwNsnSqqox-gDbnk3T4Va30aFeasQCVJ9c9zJnuuMLM0lBo8KjmZnSThb_XduVJQhlpswzXtRsyIYr3e9HS1enp7WNlVvJN14aD93XE6mdVyCwwMIKgUMaOFnx-ObeBoU2sDcRioBIWcyN7qU08QcN5aPruHoLSsGA5oNyEpyU0wq1EoZlXASYSjt-QxTOXuRfaqxbsSB787qYyRHAKAEyRQFwSkLPnFmxTNu1pkpyDF9SCQyga4-7PZmscH79_puKEO2euB0gAvLGDzVQr8fWiwW3Lhe-mJYarYDmUIM-1d-QLmZsDA; OTZ=8876899_34_34__34_; __Secure-1PSIDTS=sidts-CjYBnJZzapO5V-7XakjEGd_HFT72JJB31ByjMYULGCe_lU1m7zKidsPUGGtHQiANSduhVDOiPakQAA; __Secure-1PSIDRTS=sidts-CjYBnJZzapO5V-7XakjEGd_HFT72JJB31ByjMYULGCe_lU1m7zKidsPUGGtHQiANSduhVDOiPakQAA; __Secure-3PSIDTS=sidts-CjYBnJZzapO5V-7XakjEGd_HFT72JJB31ByjMYULGCe_lU1m7zKidsPUGGtHQiANSduhVDOiPakQAA; __Secure-3PSIDRTS=sidts-CjYBnJZzapO5V-7XakjEGd_HFT72JJB31ByjMYULGCe_lU1m7zKidsPUGGtHQiANSduhVDOiPakQAA; SIDCC=APD_SKEwVZ9PnSZC2oSfqYkv5iYP5onS9MvJYzUMoaAwAvQaZewWAq_0pB7-LQU6jsedaWepcg; __Secure-1PSIDCC=APD_SKGrq3YY9OslRZ02sFIrM0XF-UHMHIE_wXOhyvgzkaDhHU5MJorMRiudhVsd5kCCoZ_0W70; __Secure-3PSIDCC=APD_SKHhJY47g0DTobBZmgDMk7IhqfsH9Q5-12pfuAXs8uiNcqzoRD79bFmQrZpnbtCeCnj6sCw"
+            },
+            {
+              "name": "User-Agent",
+              "value": "ozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/x-www-form-urlencoded",
+        "body": "={{ $json.urlencoded_body }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1136,
+        0
+      ],
+      "id": "a3add061-1829-4551-b901-6a67f62c1308",
+      "name": "Submit Form"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Get from HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get from HTML": {
+      "main": [
+        [
+          {
+            "node": "Extract Form Schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Form Schema": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Build Submission Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Submission Payload": {
+      "main": [
+        [
+          {
+            "node": "Submit Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "edac6cb3-646d-4fc6-92bd-2540cce24d7b",
+  "activeVersionId": "edac6cb3-646d-4fc6-92bd-2540cce24d7b",
+  "versionCounter": 69,
+  "triggerCount": 0,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-11-16T18:35:46.491Z",
+      "createdAt": "2026-11-16T18:35:46.491Z",
+      "role": "workflow:owner",
+      "workflowId": "SYNkINnPh89zgdBH",
+      "projectId": "BdVmUgeBV0EmboAd",
+      "project": {
+        "updatedAt": "2026-11-09T11:54:48.497Z",
+        "createdAt": "2026-10-27T05:47:40.623Z",
+        "id": "BdVmUgeBV0EmboAd",
+        "name": "Jayesh Aher <jayeshaher12@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "99d50621-a0fc-49e1-81d3-7588c1f90355"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version edac6cb3",
+    "description": ""
+  }
+}
